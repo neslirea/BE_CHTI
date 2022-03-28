@@ -13,7 +13,12 @@
 
 	
 ; ===============================================================================================
+	; char FlagCligno;
+FlagCligno dcd 0
+	export FlagCligno
 	
+	EXPORT timer_callback
+
 
 
 		
@@ -23,11 +28,6 @@
 
 
 
-; char FlagCligno;
-FlagCligno dcd 0
-	export FlagCligno
-	
-	EXPORT timer_callback
 
 
 ;void timer_callback(void){
