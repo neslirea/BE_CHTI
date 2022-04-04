@@ -411,7 +411,7 @@
             <File>
               <FileName>GestionSon.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Driver\GestionSon.h</FilePath>
+              <FilePath>.\Src\GestionSon.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -786,7 +786,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath></IncludePath>
+              <IncludePath>.\Driver</IncludePath>
             </VariousControls>
           </Aads>
           <LDads>
@@ -840,7 +840,7 @@
             <File>
               <FileName>GestionSon.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Driver\GestionSon.h</FilePath>
+              <FilePath>.\Src\GestionSon.h</FilePath>
             </File>
           </Files>
         </Group>
@@ -1338,7 +1338,7 @@
             <File>
               <FileName>GestionSon.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\Driver\GestionSon.h</FilePath>
+              <FilePath>.\Src\GestionSon.h</FilePath>
             </File>
           </Files>
         </Group>

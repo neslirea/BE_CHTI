@@ -5,6 +5,7 @@
 	IMPORT LongueurSon
 	IMPORT Son
 	EXPORT CallbackSon
+	EXPORT StartSon
 
 
 
@@ -59,18 +60,40 @@ CallbackSon proc
 		
 		lsr r5, r5, #16 ; r5/2^16
 		
-		
+		;SortieSon = r5
 		str r5, [r0]
+		
+		
+		;		PWM_Set_Value_TIM3_Ch3(SortieSon)
+		mov r0, r5
+		push {lr, r1, r2}
+		bl PWM_Set_Value_TIM3_Ch3
+		pop {lr, r1, r2}
 		;		i++
 		add r2, r2, #1
 		str r2, [r1]
 		; 	}
 
-fin	
+fin
 		pop {r4-r6, lr}
 		bx lr
 	
-	
 		endp
 ;}			
-		END	
+			
+			
+StartSon proc
+		push {lr}
+		; r1 : adresse de index
+		ldr r1,=Index				
+		; index=0
+		mov r2, #0
+		str r2, [r1]	
+		
+		pop {lr}
+		bx lr
+		
+		endp
+			
+		END
+	

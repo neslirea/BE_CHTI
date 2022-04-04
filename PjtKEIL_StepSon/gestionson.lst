@@ -80,91 +80,125 @@ ARM Macro Assembler    Page 2
     5 00000000                 IMPORT           LongueurSon
     6 00000000                 IMPORT           Son
     7 00000000                 EXPORT           CallbackSon
-    8 00000000         
+    8 00000000                 EXPORT           StartSon
     9 00000000         
    10 00000000         
-   11 00000000         ; ====================== zone de réservation de données,
+   11 00000000         
+   12 00000000         ; ====================== zone de réservation de données,
                          ======================================
-   12 00000000         ;Section RAM (read only) :
-   13 00000000                 area             mesdata,data,readonly
-   14 00000000         
+   13 00000000         ;Section RAM (read only) :
+   14 00000000                 area             mesdata,data,readonly
    15 00000000         
-   16 00000000         ;Section RAM (read write):
-   17 00000000                 area             maram,data,readwrite
-   18 00000000         
-   19 00000000 00000000 
+   16 00000000         
+   17 00000000         ;Section RAM (read write):
+   18 00000000                 area             maram,data,readwrite
+   19 00000000         
+   20 00000000 00000000 
                        SortieSon
                                dcd              0
-   20 00000004                 EXPORT           SortieSon
-   21 00000004 00000000 
+   21 00000004                 EXPORT           SortieSon
+   22 00000004 00000000 
                        Index   dcd              0
-   22 00000008         
-   23 00000008         ; ======================================================
+   23 00000008         
+   24 00000008         ; ======================================================
                        =========================================
-   24 00000008         
-   25 00000008         ;Section ROM code (read only) :  
-   26 00000008                 area             moncode,code,readonly
-   27 00000000         ; écrire le code ici  
-   28 00000000         ; if(i<LongueurSon){
-   29 00000000         ;  SortieSon = (Son[i]+32768)/92
-   30 00000000         ;  i++
-   31 00000000         ;  }
-   32 00000000         
-   33 00000000         ;void timer_callback(void){
-   34 00000000         CallbackSon
+   25 00000008         
+   26 00000008         ;Section ROM code (read only) :  
+   27 00000008                 area             moncode,code,readonly
+   28 00000000         ; écrire le code ici  
+   29 00000000         ; if(i<LongueurSon){
+   30 00000000         ;  SortieSon = (Son[i]+32768)/92
+   31 00000000         ;  i++
+   32 00000000         ;  }
+   33 00000000         
+   34 00000000         ;void timer_callback(void){
+   35 00000000         CallbackSon
                                proc
-   35 00000000 B570            push             {r4-r6, lr}
-   36 00000002         ; r0 : adresse de SortieSon
-   37 00000002 480C            ldr              r0,=SortieSon
-   38 00000004         ; r1 : adresse de index
-   39 00000004 490C            ldr              r1,=Index
-   40 00000006         ; r2 : valeur de index
-   41 00000006 680A            ldr              r2,[r1]     ; r2 = Index
-   42 00000008         ; r3 : adresse de LongeurSon
-   43 00000008 4B0C            ldr              r3,=LongueurSon
-   44 0000000A         ; r4 : temp val de LongueurSon
-   45 0000000A 681C            ldr              r4,[r3]
-   46 0000000C         
-   47 0000000C         ; if(i<LongueurSon){
-   48 0000000C 42A2            cmp              r2, r4
-   49 0000000E DA0E            bge              fin
+   36 00000000 B570            push             {r4-r6, lr}
+   37 00000002         ; r0 : adresse de SortieSon
+   38 00000002 4817            ldr              r0,=SortieSon
+   39 00000004         ; r1 : adresse de index
+   40 00000004 4917            ldr              r1,=Index
+   41 00000006         ; r2 : valeur de index
+   42 00000006 680A            ldr              r2,[r1]     ; r2 = Index
+   43 00000008         ; r3 : adresse de LongeurSon
+   44 00000008 4B17            ldr              r3,=LongueurSon
+   45 0000000A         ; r4 : temp val de LongueurSon
+   46 0000000A 681C            ldr              r4,[r3]
+   47 0000000C         
+   48 0000000C         ; if(i<LongueurSon){
+   49 0000000C 42A2            cmp              r2, r4
 
 
 
 ARM Macro Assembler    Page 3 
 
 
-   50 00000010         
-   51 00000010         ;  SortieSon = (Son[i]+32768)/92
-   52 00000010 4C0B            ldr              r4,=Son     ; r4 : adresse de S
+   50 0000000E DA16            bge              call
+   51 00000010         
+   52 00000010         ;  SortieSon = (Son[i]+32768)/92
+   53 00000010 4C16            ldr              r4,=Son     ; r4 : adresse de S
                                                             on
-   53 00000012 F934 5012       ldrsh            r5, [r4, r2, lsl#1] 
+   54 00000012 F934 5012       ldrsh            r5, [r4, r2, lsl#1] 
                                                             ; r5 = Son[i}
-   54 00000016         
-   55 00000016 F505 4500       add              r5, r5, #32768 ; r5+= 32768
-   56 0000001A         
-   57 0000001A F240 26CF       mov              r6, #719
-   58 0000001E FB05 F506       mul              r5, r5, r6  ; r5*=719
-   59 00000022         
-   60 00000022 EA4F 4515       lsr              r5, r5, #16 ; r5/2^16
-   61 00000026         
+   55 00000016         
+   56 00000016 F505 4500       add              r5, r5, #32768 ; r5+= 32768
+   57 0000001A         
+   58 0000001A F240 26CF       mov              r6, #719
+   59 0000001E FB05 F506       mul              r5, r5, r6  ; r5*=719
+   60 00000022         
+   61 00000022 EA4F 4515       lsr              r5, r5, #16 ; r5/2^16
    62 00000026         
-   63 00000026 6005            str              r5, [r0]
-   64 00000028         ;  i++
-   65 00000028 F102 0201       add              r2, r2, #1
-   66 0000002C 600A            str              r2, [r1]
-   67 0000002E         ;  }
-   68 0000002E         
-   69 0000002E         fin
-   70 0000002E E8BD 4070       pop              {r4-r6, lr}
-   71 00000032 4770            bx               lr
-   72 00000034         
-   73 00000034         
-   74 00000034                 endp
-   75 00000034         ;}   
-   76 00000034                 END
+   63 00000026         ;SortieSon = r5
+   64 00000026 6005            str              r5, [r0]
+   65 00000028         
+   66 00000028         
+   67 00000028         ;  PWM_Set_Value_TIM3_Ch3(SortieSon)
+   68 00000028 4628            mov              r0, r5
+   69 0000002A B506            push             {lr, r1, r2}
+   70 0000002C F7FF FFFE       bl               PWM_Set_Value_TIM3_Ch3
+   71 00000030 E8BD 4006       pop              {lr, r1, r2}
+   72 00000034         ;  i++
+   73 00000034 F102 0201       add              r2, r2, #1
+   74 00000038 600A            str              r2, [r1]
+   75 0000003A         ;  }
+   76 0000003A F000 F805       bl               fin
+   77 0000003E         call
+   78 0000003E B50F            push             {lr, r0-r3}
+   79 00000040 F7FF FFFE       bl               StartSon
+   80 00000044 E8BD 400F       pop              {lr, r0-r3}
+   81 00000048         fin
+   82 00000048 E8BD 4070       pop              {r4-r6, lr}
+   83 0000004C 4770            bx               lr
+   84 0000004E         
+   85 0000004E                 endp
+   86 0000004E         ;}   
+   87 0000004E         
+   88 0000004E         
+   89 0000004E         StartSon
+                               proc
+   90 0000004E B500            push             {lr}
+   91 00000050         ; r1 : adresse de index
+   92 00000050 4904            ldr              r1,=Index
+   93 00000052         ; index=0
+   94 00000052 F04F 0200       mov              r2, #0
+   95 00000056 600A            str              r2, [r1]
+   96 00000058         
+   97 00000058 F85D EB04       pop              {lr}
+   98 0000005C 4770            bx               lr
+   99 0000005E         
+  100 0000005E                 endp
+  101 0000005E         
+  102 0000005E         END
+                       
+              00 00 00000000 
               00000000 
-              00000000 
+
+
+
+ARM Macro Assembler    Page 4 
+
+
               00000000 
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
@@ -184,7 +218,7 @@ mesdata 00000000
 
 Symbol: mesdata
    Definitions
-      At line 13 in file Src\GestionSon.s
+      At line 14 in file Src\GestionSon.s
    Uses
       None
 Comment: mesdata unused
@@ -199,24 +233,25 @@ Index 00000004
 
 Symbol: Index
    Definitions
-      At line 21 in file Src\GestionSon.s
+      At line 22 in file Src\GestionSon.s
    Uses
-      At line 39 in file Src\GestionSon.s
-Comment: Index used once
+      At line 40 in file Src\GestionSon.s
+      At line 92 in file Src\GestionSon.s
+
 SortieSon 00000000
 
 Symbol: SortieSon
    Definitions
-      At line 19 in file Src\GestionSon.s
-   Uses
       At line 20 in file Src\GestionSon.s
-      At line 37 in file Src\GestionSon.s
+   Uses
+      At line 21 in file Src\GestionSon.s
+      At line 38 in file Src\GestionSon.s
 
 maram 00000000
 
 Symbol: maram
    Definitions
-      At line 17 in file Src\GestionSon.s
+      At line 18 in file Src\GestionSon.s
    Uses
       None
 Comment: maram unused
@@ -231,27 +266,52 @@ CallbackSon 00000000
 
 Symbol: CallbackSon
    Definitions
-      At line 34 in file Src\GestionSon.s
+      At line 35 in file Src\GestionSon.s
    Uses
       At line 7 in file Src\GestionSon.s
 Comment: CallbackSon used once
-fin 0000002E
+END 0000005E
+
+Symbol: END
+   Definitions
+      At line 102 in file Src\GestionSon.s
+   Uses
+      None
+Comment: END unused
+StartSon 0000004E
+
+Symbol: StartSon
+   Definitions
+      At line 89 in file Src\GestionSon.s
+   Uses
+      At line 8 in file Src\GestionSon.s
+      At line 79 in file Src\GestionSon.s
+
+call 0000003E
+
+Symbol: call
+   Definitions
+      At line 77 in file Src\GestionSon.s
+   Uses
+      At line 50 in file Src\GestionSon.s
+Comment: call used once
+fin 00000048
 
 Symbol: fin
    Definitions
-      At line 69 in file Src\GestionSon.s
+      At line 81 in file Src\GestionSon.s
    Uses
-      At line 49 in file Src\GestionSon.s
+      At line 76 in file Src\GestionSon.s
 Comment: fin used once
 moncode 00000000
 
 Symbol: moncode
    Definitions
-      At line 26 in file Src\GestionSon.s
+      At line 27 in file Src\GestionSon.s
    Uses
       None
 Comment: moncode unused
-3 symbols
+6 symbols
 
 
 
@@ -312,7 +372,7 @@ Symbol: LongueurSon
    Definitions
       At line 5 in file Src\GestionSon.s
    Uses
-      At line 43 in file Src\GestionSon.s
+      At line 44 in file Src\GestionSon.s
 Comment: LongueurSon used once
 PWM_Set_Value_TIM3_Ch3 00000000
 
@@ -326,15 +386,15 @@ External symbols
    Definitions
       At line 18 in file .\Driver\DriverJeuLaser.inc
    Uses
-      None
-Comment: PWM_Set_Value_TIM3_Ch3 unused
+      At line 70 in file Src\GestionSon.s
+Comment: PWM_Set_Value_TIM3_Ch3 used once
 Son 00000000
 
 Symbol: Son
    Definitions
       At line 6 in file Src\GestionSon.s
    Uses
-      At line 52 in file Src\GestionSon.s
+      At line 53 in file Src\GestionSon.s
 Comment: Son used once
 9 symbols
-353 symbols in table
+356 symbols in table
