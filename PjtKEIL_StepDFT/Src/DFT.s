@@ -27,7 +27,7 @@
 
 ;Section ROM code (read only) :		
 	AREA Trigo, DATA, READONLY
-; codage fractionnaire 1.15
+; codage fractionnaire 1.15 !!!!!
 	export TabCos
 	export TabSin
 TabCos
