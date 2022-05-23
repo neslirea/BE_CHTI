@@ -1,0 +1,208 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 PRESERVE8
+    2 00000000                 THUMB
+    3 00000000                 IMPORT           TabCos
+    4 00000000                 IMPORT           TabSin
+    5 00000000                 IMPORT           LeSignal
+    6 00000000         
+    7 00000000                 EXPORT           DFT_ModuleAuCarre
+    8 00000000         
+    9 00000000         ; ====================== zone de réservation de données,
+                         ======================================
+   10 00000000         ;Section RAM (read only) :
+   11 00000000                 area             mesdata,data,readonly
+   12 00000000         
+   13 00000000         
+   14 00000000         ;Section RAM (read write):
+   15 00000000                 area             maram,data,readwrite
+   16 00000000         
+   17 00000000         ; ======================================================
+                       =========================================
+   18 00000000         
+   19 00000000         ;Section ROM code (read only) :  
+   20 00000000                 area             moncode,code,readonly
+   21 00000000         
+   22 00000000         
+   23 00000000         
+   24 00000000         DFT_ModuleAuCarre
+                               proc
+   25 00000000 E92D 41F0       push             {r4-r8, lr}
+   26 00000004         
+   27 00000004 4F15            ldr              r7,=TabCos
+   28 00000006 F8DF 8058       ldr              r8,=TabSin
+   29 0000000A         
+   30 0000000A         ;int Xim;
+   31 0000000A 460D            mov              r5, r1      ;val de k (argument
+                                                            )
+   32 0000000C         
+   33 0000000C F04F 0100       mov              r1, #0
+   34 00000010         ;int Xre;
+   35 00000010 F04F 0200       mov              r2, #0
+   36 00000014         
+   37 00000014 F04F 0300       mov              r3, #0      ;var de boucle
+   38 00000018         boucle
+   39 00000018         ;for (int n = 0; n<64; n++)
+   40 00000018         ;{
+   41 00000018         ; Xre += x[n]*tabCos[k*n%64]; 
+   42 00000018 F930 4013       ldrsh            r4, [r0, r3, lsl#1] 
+                                                            ;r4 <- x[n] 
+   43 0000001C FB05 F603       mul              r6, r5, r3
+   44 00000020 F006 063F       and              r6, r6, #63 ;k*n%64
+   45 00000024 F937 6016       ldrsh            r6, [r7, r6, lsl#1] 
+                                                            ;r6 <-tabCos[r6]
+   46 00000028 FB04 F406       mul              r4, r4, r6  ;on doit faire une 
+                                                            multiplication 4.12
+                                                             par 1.15 -> 5.27
+   47 0000002C 4421            add              r1, r4, r1
+   48 0000002E         
+   49 0000002E         ; Xim += x[n]*tabSin[k*n%64]; 
+   50 0000002E F930 4013       ldrsh            r4, [r0, r3, lsl#1]
+   51 00000032 FB05 F603       mul              r6, r5, r3
+
+
+
+ARM Macro Assembler    Page 2 
+
+
+   52 00000036 F006 063F       and              r6, r6, #63 ;k*n%64
+   53 0000003A F938 6016       ldrsh            r6, [r8, r6, lsl#1] 
+                                                            ;r6 <-tabSin[r6]
+   54 0000003E FB04 F406       mul              r4, r4, r6
+   55 00000042 4422            add              r2, r4, r2
+   56 00000044         
+   57 00000044         
+   58 00000044         
+   59 00000044 F103 0301       add              r3, r3, #1  ;n++
+   60 00000048 2B40            cmp              r3, #64
+   61 0000004A D1E5            bne              boucle
+   62 0000004C         ;}
+   63 0000004C         
+   64 0000004C         ;return Xre**2 + Xim**2 
+   65 0000004C         ;on va se retrouver avec du 10.54 soit 64 bits !!!
+   66 0000004C FB81 1001       smull            r1, r0, r1, r1 ;r1 least signif
+                                                            icant / r0 most sig
+                                                            nificant OK
+   67 00000050 FBC2 1002       smlal            r1, r0, r2, r2
+   68 00000054         ;somme de r0, r1 avec r2, r3 (attention à la retenue !!)
+                       
+   69 00000054         ;adds r0, r0, r2
+   70 00000054         ;adc r1, r1, r3
+   71 00000054         ;on arrondit en 10.22 en troncant, seulement r0 sera lue
+                       
+   72 00000054         
+   73 00000054         
+   74 00000054         
+   75 00000054 E8BD 41F0       pop              {r4-r8, lr}
+   76 00000058 4770            bx               lr
+   77 0000005A         
+   78 0000005A         
+   79 0000005A                 endp
+   80 0000005A         
+   81 0000005A                 END
+              00 00 00000000 
+              00000000 
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
+ork --depend=.\obj\gestiondft.d -o.\obj\gestiondft.o -I.\Driver -I.\RTE\_CibleS
+ondeKEIL -IC:\Programdata\Keil\Arm\Packs\ARM\CMSIS\5.7.0\CMSIS\Core\Include -IC
+:\Programdata\Keil\Arm\Packs\Keil\STM32F1xx_DFP\2.3.0\Device\Include --predefin
+e="__EVAL SETA 1" --predefine="__MICROLIB SETA 1" --predefine="__UVISION_VERSIO
+N SETA 534" --predefine="_RTE_ SETA 1" --predefine="STM32F10X_MD SETA 1" --pred
+efine="_RTE_ SETA 1" --list=gestiondft.lst GestionDFT.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+mesdata 00000000
+
+Symbol: mesdata
+   Definitions
+      At line 11 in file GestionDFT.s
+   Uses
+      None
+Comment: mesdata unused
+1 symbol
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+maram 00000000
+
+Symbol: maram
+   Definitions
+      At line 15 in file GestionDFT.s
+   Uses
+      None
+Comment: maram unused
+1 symbol
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+DFT_ModuleAuCarre 00000000
+
+Symbol: DFT_ModuleAuCarre
+   Definitions
+      At line 24 in file GestionDFT.s
+   Uses
+      At line 7 in file GestionDFT.s
+Comment: DFT_ModuleAuCarre used once
+boucle 00000018
+
+Symbol: boucle
+   Definitions
+      At line 38 in file GestionDFT.s
+   Uses
+      At line 61 in file GestionDFT.s
+Comment: boucle used once
+moncode 00000000
+
+Symbol: moncode
+   Definitions
+      At line 20 in file GestionDFT.s
+   Uses
+      None
+Comment: moncode unused
+3 symbols
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+External symbols
+
+LeSignal 00000000
+
+Symbol: LeSignal
+   Definitions
+      At line 5 in file GestionDFT.s
+   Uses
+      None
+Comment: LeSignal unused
+TabCos 00000000
+
+Symbol: TabCos
+   Definitions
+      At line 3 in file GestionDFT.s
+   Uses
+      At line 27 in file GestionDFT.s
+Comment: TabCos used once
+TabSin 00000000
+
+Symbol: TabSin
+   Definitions
+      At line 4 in file GestionDFT.s
+   Uses
+      At line 28 in file GestionDFT.s
+Comment: TabSin used once
+3 symbols
+345 symbols in table
